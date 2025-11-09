@@ -1,23 +1,8 @@
-#include <errno.h>
-#include <fcntl.h>
-#include <netdb.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
-
-#define MAX_PORTS_NUM 65535
-#define THREADS_NUM 8
+#include "port_scanner.h"
 
 int CURRENT_PORT = 0;
 int PERCENT_DONE = 1;
 pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
-
-void scan_ports(const char* ip_addr);
-void* run_thread(void* arguments);
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -38,14 +23,14 @@ void scan_ports(const char* ip_addr) {
         status = pthread_create(&threads[i], NULL, run_thread, (void*)ip_addr);
         if (status != 0) {
             fprintf(stderr, "pthread_create: thread creation failed\n");
-            exit(-1);
+            exit(2);
         }
     }
     for (int i = 0; i < THREADS_NUM; i++) {
         status = pthread_join(threads[i], NULL);
         if (status != 0) {
             fprintf(stderr, "pthread_join: thread termination failed\n");
-            exit(-1);
+            exit(2);
         }
         printf("! Thread %d has finished\n", i + 1);
     }
